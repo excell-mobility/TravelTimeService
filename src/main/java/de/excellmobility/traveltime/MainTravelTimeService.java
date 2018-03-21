@@ -56,7 +56,7 @@ public class MainTravelTimeService
              @Override
              public String getApplicationBasePath()
              {
-               return "/api/v1/service-request/trackingservice";
+               return "/api/v1/service-request/traveltimeservice";
              }})
            ;
   }
