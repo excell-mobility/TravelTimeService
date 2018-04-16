@@ -83,7 +83,7 @@ public class Calculation {
 		tt_accuracy[0] = Math.round(tt_accuracy[0]);
 		tt_accuracy[0] = tt_accuracy[0]/10;
 		
-		return new ResponseTraveltime(sid, next_sid, tt_accuracy[0], (int)tt_accuracy[1], standardDeviation, time);
+		return new ResponseTraveltime(sid, next_sid, reverse, tt_accuracy[0], (int)tt_accuracy[1], standardDeviation, time);
 	}
 			
 	public List<ResponseTraveltime> getActualTraveltimeDresden() {
@@ -116,7 +116,7 @@ public class Calculation {
 					//[traveltime, standard deviation]
 					int[] fcd_hydrograph = Function.getValueFromTraveltimeHydrograph(hydrograph, calRequest);
 					if(fcd_hydrograph != null) {
-						ResponseTraveltime rt = new ResponseTraveltime(hydrograph.edge_id, hydrograph.next_edge_id, fcd_hydrograph[0], Config.accuracyHydrograph, fcd_hydrograph[1], time);
+						ResponseTraveltime rt = new ResponseTraveltime(hydrograph.edge_id, hydrograph.next_edge_id, hydrograph.reverse, fcd_hydrograph[0], Config.accuracyHydrograph, fcd_hydrograph[1], time);
 						list.add(rt);
 						//sqlStatements.add("('"+hydrograph.edge_id+"','"+hydrograph.reverse+"', '"+fcd_hydrograph[0]+"','"+Config.accuracyHydrograph+"','"+hydrograph.next_edge_id+"','"+actualTime+"'),");
 					}
@@ -130,7 +130,7 @@ public class Calculation {
 				if(speed_sd != null) {
 					int speed = speed_sd[0];
 					int hydTraveltimeSensor = (int)(hydrograph.road_length/((double)speed/3.6));
-					ResponseTraveltime rt = new ResponseTraveltime(hydrograph.edge_id, hydrograph.next_edge_id, hydTraveltimeSensor, Config.accuracyHydrograph, 0, time);
+					ResponseTraveltime rt = new ResponseTraveltime(hydrograph.edge_id, hydrograph.next_edge_id, hydrograph.reverse, hydTraveltimeSensor, Config.accuracyHydrograph, 0, time);
 					list.add(rt);
 				}
 			}

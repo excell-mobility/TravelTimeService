@@ -21,6 +21,7 @@ public class Thread_Calculation extends TimerTask{
 	private HashMap<String, HashMap<String, Hydrograph>> hm_tt_hydrograph = new HashMap<>();
 	
 	public void run() {
+		System.out.println();
 		System.out.println("**************************************************************");
 		long time = System.currentTimeMillis();
 		long timeAll = System.currentTimeMillis();
@@ -64,11 +65,7 @@ public class Thread_Calculation extends TimerTask{
 		//     edge_id          reverse     
 		HashMap<String, HashMap<Boolean, List<Trafficstream>>> hm_fcdtt = new HashMap<String, HashMap<Boolean,List<Trafficstream>>>();
 		//import Daten 
-		//TODO: wenn Tabelle partitioniert kann limit 20000 wieder raus
-		//String query = "select id, sid, did, next_sid, next_did, entertime, exittime, length from "+DbConnector.table_raw_edge_records+" where sid != '' and next_sid != '' order by exittime desc limit 2000";
-//		String query = "select id, sid, did, next_sid, next_did, entertime, exittime, length from "+DbConnector.table_raw_edge_records+" where sid != '' and next_sid != '' "
-//				+ "and (extract(epoch from now())-exittime/1000) < "+Config.betrachtungszeitraum+" order by exittime desc";
-		
+		//limit 20000 for performance, if you need, increase the limit -> at the moment, no data in table edge_records will be delete, so the query time will increase over time without limit
 		String query = "select id, sid, reverse, next_sid, entertime, exittime, length from (select * from "+DbConnector.table_edge_records+" order by exittime desc limit 20000) as t1 where sid != '' and next_sid != '' "
 		+ "and entertime > 0 and exittime >= entertime and (extract(epoch from now())-exittime/1000) < "+Config.intervalMeasuredTraveltime+" order by exittime desc";
 		
@@ -210,22 +207,23 @@ public class Thread_Calculation extends TimerTask{
 				//save in hashmap
 				Sensordata sd = list.get(0);
 				sd.tt_fusion = (int)Math.round(tt_fusion);
+				
 				if(hm_sensor_tt.containsKey(sd.edge_id)) {
 					if(hm_sensor_tt.get(sd.edge_id).containsKey(sd.reverse)) {
 						//more than one sensorgroup on an edge_id/reverse -> fusion
 						Sensordata sd_existing = hm_sensor_tt.get(sd.edge_id).get(sd.reverse);
 						//fusion sensor-traveltime
-						//TODO:  Test
-						double test = ((1/sd.getAccuracy()+sd_existing.getAccuracy())*( (sd.getAccuracy()*sd.getTt()) + (sd_existing.getAccuracy()*sd_existing.getTt())));
-						
 						if(sd_existing.acc_fusion == 0) {
-							sd_existing.tt_fusion = (int)((1/sd.getAccuracy()+sd_existing.getAccuracy())*( (sd.getAccuracy()*sd.getTt()) + (sd_existing.getAccuracy()*sd_existing.getTt())));
-							sd_existing.acc_fusion = (int) ( (1/sd.getAccuracy()+sd_existing.getAccuracy())*(sd.getAccuracy() + sd_existing.getAccuracy()) );
+							double sdAcc = sd.getAccuracy();
+							double sdExitstAcc = sd_existing.getAccuracy();
+							sd_existing.tt_fusion = (int) ( (sd_existing.getTt()*(sdExitstAcc/(sdExitstAcc+sdAcc))) +  (sd.getTt()*(sdAcc/(sdExitstAcc+sdAcc))) );
+							sd_existing.acc_fusion = (int) ( (sdExitstAcc*(sdExitstAcc/(sdExitstAcc+sdAcc))) +  (sdAcc*(sdAcc/(sdExitstAcc+sdAcc))) );
 						}
 						//it exist a fusion of sensor-data
 						else{
-							sd_existing.tt_fusion = (int)((1/sd.getAccuracy()+sd_existing.acc_fusion)*( (sd.getAccuracy()*sd.getTt()) + (sd_existing.acc_fusion*sd_existing.tt_fusion)));
-							sd_existing.acc_fusion = (int) ( (1/sd.getAccuracy()+sd_existing.acc_fusion)*(sd.getAccuracy() + sd_existing.acc_fusion) );
+							double sdAcc = sd.getAccuracy();
+							sd_existing.tt_fusion = (int) ( (sd_existing.tt_fusion*(sd_existing.acc_fusion/(sd_existing.acc_fusion+sdAcc))) +  (sd.getTt()*(sdAcc/(sd_existing.acc_fusion+sdAcc))) );
+							sd_existing.acc_fusion = (int) ( (sd_existing.acc_fusion*(sd_existing.acc_fusion/(sd_existing.acc_fusion+sdAcc))) +  (sdAcc*(sdAcc/(sd_existing.acc_fusion+sdAcc))) );
 						}
 					}
 					else {
@@ -342,8 +340,6 @@ public class Thread_Calculation extends TimerTask{
 				Entry<Boolean, List<Trafficstream>> entry_reverse = it_reverse.next();
 				List<Trafficstream> list_trafficstream = entry_reverse.getValue();
 				for(Trafficstream ts : list_trafficstream) {
-					if(ts.edge_id.equals("ghE#8541"))
-						System.out.println("");
 					sqlStatements.add("('"+ts.edge_id+"','"+ts.reverse+"', '"+ts.tt+"','"+ts.accuracy+"','"+ts.next_edge_id+"','"+actualTime+"'),");
 				}
 			}
@@ -375,8 +371,6 @@ public class Thread_Calculation extends TimerTask{
 			while(it_hyd_nextEdgeId.hasNext()) {
 				Entry<String, Hydrograph> entry_nextEdgeId = it_hyd_nextEdgeId.next();
 				Hydrograph hydrograph = entry_nextEdgeId.getValue();
-				if(hydrograph.edge_id.equals("ghE#8541"))
-						System.out.println("");
 				//[traveltime, standard deviation]
 				int[] fcd_hydrograph = Function.getValueFromTraveltimeHydrograph(hydrograph, calRequest);
 				if(fcd_hydrograph != null) {

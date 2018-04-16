@@ -55,7 +55,7 @@ public class MainTravelTimeService {
 
 	private ApiInfo apiInfo() {
 		return new ApiInfoBuilder().title("ExCELL TravelTimeService").description(
-				"Über den TravelTimeService können aktuelle sowie zukünftige Reisezeiten für einzelne Abschnitte sowie zur Zeit für ganz Dresden abgerufen werden. Zurückgegeben werden entweder aktuell gemessene Reisezeiten oder Reisezeiten aus Tagesganglinien. "
+				"Über den TravelTimeService können aktuelle sowie zukünftige Reisezeiten (in Sekunden) für einzelne Abschnitte sowie zur Zeit für ganz Dresden abgerufen werden. Zurückgegeben werden entweder aktuell gemessene Reisezeiten oder Reisezeiten aus Tagesganglinien. "
 						+ "Kann auf keine der Werte zurückgegriffen werden, so werden keine Reisezeiten angegeben, d.h. es werden keine statischen Reisezeiten, resultierend aus zulässiger Höchstgeschwindigkeit "
 						+ "und Länge des Elementes, berechnet." + "\n\n "
 						+ "The TravelTimeService can be used to retrieve current and future travel times for individual sections or actual for the whole of Dresden. "

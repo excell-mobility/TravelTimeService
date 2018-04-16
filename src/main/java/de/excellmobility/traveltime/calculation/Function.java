@@ -587,13 +587,13 @@ public static List<Hydrograph> importSensorHydrographDresden(int daygroup) {
 		Statement st = null;
 		ResultSet rs = null;
 		Connection conn = null;
-		String query = "select t1.sid, t1.next_sid, t1.tt, t1.tt_accuracy, t1.timestamp, to_timestamp(t1.timestamp/1000) from "+DbConnector.table_edges_tt+" as t1, infra.edges_dresden as t2 where t1.sid = t2.sid";
+		String query = "select t1.sid, t1.next_sid, t1.reverse, t1.tt, t1.tt_accuracy, t1.timestamp, to_timestamp(t1.timestamp/1000) from "+DbConnector.table_edges_tt+" as t1, infra.edges_dresden as t2 where t1.sid = t2.sid";
 		try{
 			conn = DriverManager.getConnection("jdbc:postgresql://" + DbConnector.excelldb_host + ":" + DbConnector.excelldb_port + "/" + DbConnector.excelldb_name + "", DbConnector.excelldb_user, DbConnector.excelldb_pass);
 			st = conn.createStatement();
 			rs = st.executeQuery(query);
 			while (rs.next()) {
-				ResponseTraveltime rt = new ResponseTraveltime(rs.getString("sid"), rs.getString("next_sid"), rs.getInt("tt"), rs.getInt("tt_accuracy"), 0, calRequest.getTimeInMillis());
+				ResponseTraveltime rt = new ResponseTraveltime(rs.getString("sid"), rs.getString("next_sid"), rs.getBoolean("reverse"), rs.getInt("tt"), rs.getInt("tt_accuracy"), 0, calRequest.getTimeInMillis());
 				list.add(rt);
 			}
 						
